@@ -1,0 +1,40 @@
+Примерно такую страницу возвращает ноушен
+{
+  object: 'page',
+  id: '477af5ec-d43a-46f4-b7c4-845af248cb39',
+  created_time: '2023-05-28T20:15:00.000Z',
+  last_edited_time: '2023-06-07T12:30:00.000Z',
+  created_by: { object: 'user', id: '435633fa-e440-440a-9913-7df457961d73' },
+  last_edited_by: { object: 'user', id: '9ca79ecb-b9d0-4194-a7b8-464e17b70d1b' },
+  cover: null,
+  icon: {
+    type: 'external',
+    external: { url: 'https://www.notion.so/icons/conversation_gray.svg' }
+  },
+  parent: {
+    type: 'database_id',
+    database_id: '3973d101-9359-4cfd-b9b0-229a487d40a1'
+  },
+  archived: false,
+  properties: {
+    Assignee: { id: 'EeaZ', type: 'people', people: [Array] },
+    'Reviewer [if review required]': { id: 'GBYr', type: 'people', people: [] },
+    Team: { id: 'Rh%3BW', type: 'select', select: [Object] },
+    'Reported by': { id: 'ZhZm', type: 'people', people: [] },
+    Status: { id: '%5DYrS', type: 'status', status: [Object] },
+    Epic: { id: '%60XlK', type: 'relation', relation: [], has_more: false },
+    'Archived at': { id: 'j%7BU%5E', type: 'date', date: null },
+    'Added on': {
+      id: 'rHRu',
+      type: 'created_time',
+      created_time: '2023-05-28T20:15:00.000Z'
+    },
+    'Parent item': { id: 'uo%7Dq', type: 'relation', relation: [], has_more: false },
+    'Sub-item': { id: 'v%7B%3Ax', type: 'relation', relation: [], has_more: false },
+    'Created by': { id: 'zKeW', type: 'created_by', created_by: [Object] },
+    Area: { id: '%7Dnx%3A', type: 'select', select: null },
+    Name: { id: 'title', type: 'title', title: [Array] }
+  },
+  url: 'https://www.notion.so/477af5ecd43a46f4b7c4845af248cb39',
+  public_url: null
+}

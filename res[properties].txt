@@ -1,0 +1,43 @@
+Это свойство properties объекта, который возращает ноушен в качестве ответа
+{
+    Assignee: { id: 'EeaZ', type: 'people', people: [ [Object] ] },
+    'Reviewer [if review required]': { id: 'GBYr', type: 'people', people: [] },
+    Team: {
+      id: 'Rh%3BW',
+      type: 'select',
+      select: {
+        id: 'edea326f-3033-4858-a5ab-7432c5a7937e',
+        name: 'B Team',
+        color: 'purple'
+      }
+    },
+    'Reported by': { id: 'ZhZm', type: 'people', people: [] },
+    Status: {
+      id: '%5DYrS',
+      type: 'status',
+      status: { id: ';qWT', name: '⏳ Blocked', color: 'pink' }
+    },
+    Epic: { id: '%60XlK', type: 'relation', relation: [], has_more: false },
+    'Archived at': { id: 'j%7BU%5E', type: 'date', date: null },
+    'Added on': {
+      id: 'rHRu',
+      type: 'created_time',
+      created_time: '2023-05-28T20:15:00.000Z'
+    },
+    'Parent item': { id: 'uo%7Dq', type: 'relation', relation: [], has_more: false },
+    'Sub-item': { id: 'v%7B%3Ax', type: 'relation', relation: [], has_more: false },
+    'Created by': {
+      id: 'zKeW',
+      type: 'created_by',
+      created_by: {
+        object: 'user',
+        id: '435633fa-e440-440a-9913-7df457961d73',
+        name: 'Aleksandra Gavri',
+        avatar_url: 'https://s3-us-west-2.amazonaws.com/public.notion-static.com/56481f1f-52b7-46b6-86ca-5f1d633bffe0/GAVRI.png',
+        type: 'person',
+        person: [Object]
+      }
+    },
+    Area: { id: '%7Dnx%3A', type: 'select', select: null },
+    Name: { id: 'title', type: 'title', title: [ [Object] ] }
+  }
