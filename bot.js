@@ -32,11 +32,10 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 // Обработчик команды /start
 bot.onText(/\/start/, (msg) => {
     // Отправляем приветственное сообщение
-    bot.sendMessage(msg.chat.id, 'Привет! Чтобы получать уведомления из Notion, введи /notifi');
+    bot.sendMessage(msg.chat.id, 'Привет! Чтобы получать уведомления из Notion, введи /notifi, если не хотите получать рассылку, но хотите посмотреть последние изменения введите /last_notofi');
 });
 
-// Обработчик команды /notifi, которая отправляет 10 последних уведомлений 
-// и подписывает человека на рассылку новых уведомлений
+// Подписывает человека на рассылку уведомлений
 bot.onText(/\/notifi/, (msg) => {
     // Проверяем есть ли уже у нас такой чат айди, если нет - добавляем и записываем в файл
     if (!chatsId.includes(msg.chat.id)) {
@@ -47,39 +46,11 @@ bot.onText(/\/notifi/, (msg) => {
             if (err) throw err;
             console.log('Data saved to file');
         });
+        bot.sendMessage(msg.chat.id, 'Вы успешно подписались на рассылку уведомлений');
     }
-
-    // Получаем массив страниц из базы данных ноушен
-    let currentResults;
-    getNotionNotifications(process.env.NOTION_API_KEY, process.env.NOTION_DATABASE_ID).then(res => {
-        currentResults = res;
-        // Соритруем по времени редактирования
-        currentResults.sort((a, b) => a.last_edited_time > b.last_edited_time ? 1 : -1).reverse();
-
-        // Отправляем последние 10 измененных страниц
-        sendNotificationsLoop(currentResults, 9, false, msg.chat.id)
-
-    });
-
-    // Каждые 5 минут получаем новый массив страниц
-    setInterval(() => {
-        let newResults;
-        getNotionNotifications(process.env.NOTION_API_KEY, process.env.NOTION_DATABASE_ID).then(res => {
-            newResults = res;
-            // Также сортируем его
-            newResults.sort((a, b) => a.last_edited_time > b.last_edited_time ? 1 : -1).reverse();
-
-            // Проверяем есть ли изменения относительно предыдущего массива страниц
-            let updates = change(currentResults, newResults);
-            console.log(updates)
-            if (updates.length > 0) {
-                console.log('===========UPDATES===========')
-                // Отправляем все измененные страницы
-                sendNotificationsLoop(updates, updates.length - 1)
-                currentResults = newResults;
-            }
-        });
-    }, 5 * 60 * 1000);
+    else {
+        bot.sendMessage(msg.chat.id, 'Вы уже подписаны на рассылку уведомлений, если хотите отписаться, отправьте /stop_notofi');
+    }
 });
 
 // Отписываем пользователя от обновлений. Для этого удаляем его из списка
@@ -97,28 +68,50 @@ bot.onText(/\/stop_notofi/, (msg) => {
     bot.sendMessage(msg.chat.id, 'Вы успешно отписались от уведомлений');
 });
 
+bot.onText(/\/last_notofi/, (msg) => {
+    for (let notifi = 4; notifi >= 0; notifi--) {
+        sendNotifications(msg.chat.id, currentResults[notifi]);
+    }
+});
+
+// Получаем массив страниц из базы данных ноушен
+let currentResults = await getNotionNotifications(process.env.NOTION_API_KEY, process.env.NOTION_DATABASE_ID);
+// Соритруем по времени редактирования
+currentResults.sort((a, b) => a.last_edited_time > b.last_edited_time ? 1 : -1).reverse();
+setInterval(notifications, 5 * 60 * 1000);
+
 console.log('Telegram-бот запущен');
 
+// =========================================== Функции ============================================================
+async function notifications() {
+    let newResults = await getNotionNotifications(process.env.NOTION_API_KEY, process.env.NOTION_DATABASE_ID);
+    // Также сортируем его
+    newResults.sort((a, b) => a.last_edited_time > b.last_edited_time ? 1 : -1).reverse();
+
+    // Проверяем есть ли изменения относительно предыдущего массива страниц
+    let updates = change(currentResults, newResults);
+    console.log(updates)
+    if (updates.length > 0) {
+        console.log('===========UPDATES===========')
+        // Отправляем все измененные страницы
+        sendNotificationsLoop(updates, updates.length - 1)
+        currentResults = newResults;
+    }
+}
+
 // Асинхронная функция для поочередной отправки сообщений в бота
-async function sendNotificationsLoop(currentResults, quantyty, changed = true, chatIdNow = 0) {
-    for (let i = quantyty; i >= 0; i--) {
-        let time = new Date(currentResults[i].last_edited_time);
-        console.log('\n', time);
-
-        if (chatIdNow !== 0) {
-            await sendNotifications(chatIdNow, currentResults[i]);
-        }
-        else {
-            for (let chat = 0; chat < chatsId.length; chat++) {
-                await sendNotifications(chatsId[chat], currentResults[i], changed);
-            }
-
+async function sendNotificationsLoop(pages, notofiCount) {
+    for (let notifi = notofiCount; notifi >= 0; notifi--) {
+        for (let chat = 0; chat < chatsId.length; chat++) {
+            await sendNotifications(chatsId[chat], pages[notifi]);
+            let time = new Date(pages[notifi].last_edited_time);
+            console.log('\n', time);
         }
     }
 }
 
 // Функция отправляющее 1 сообщение в бота
-async function sendNotifications(chatId, page, changed) {
+async function sendNotifications(chatId, page) {
     const created = new Date(page.created_time);
     const edited = new Date(page.last_edited_time);
     let assignee = ''
@@ -126,7 +119,7 @@ async function sendNotifications(chatId, page, changed) {
         assignee.concat(' ', people.name);
     });
 
-    let massage = `${changed ? 'Изменения в задаче ' : ''}${page.properties.Name.title[0].plain_text}\n\nСоздана: ${edited.toLocaleString("ru", timeOptions)} ${created.toLocaleString("en-US", dateOptions)}\nРедактирована: ${edited.toLocaleString("ru", timeOptions)} ${edited.toLocaleString("en-US", dateOptions)}\n\nСтатус: ${page.properties.Status.status.name}\nОтветственные:${assignee}\n\nURL: ${page.url}`;
+    let massage = `Изменения в задаче "${page.properties.Name.title[0].plain_text}"\n\nСоздана: ${edited.toLocaleString("ru", timeOptions)} ${created.toLocaleString("en-US", dateOptions)}\nРедактирована: ${edited.toLocaleString("ru", timeOptions)} ${edited.toLocaleString("en-US", dateOptions)}\n\nСтатус: ${page.properties.Status.status.name}\nОтветственные:${assignee}\n\nURL: ${page.url}`;
     await bot.sendMessage(chatId, massage)
     console.log('\nОтправлено: ', edited);
 }
