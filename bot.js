@@ -74,22 +74,25 @@ bot.onText(/\/last_notofi/, (msg) => {
     }
 });
 
-// Получаем массив страниц из базы данных ноушен
-let currentResults = await getNotionNotifications(process.env.NOTION_API_KEY, process.env.NOTION_DATABASE_ID);
-// Соритруем по времени редактирования
-currentResults.sort((a, b) => a.last_edited_time > b.last_edited_time ? 1 : -1).reverse();
-setInterval(notifications, 5 * 60 * 1000);
-
+startNotifications()
 console.log('Telegram-бот запущен');
 
 // =========================================== Функции ============================================================
-async function notifications() {
+async function startNotifications() {
+    // Получаем массив страниц из базы данных ноушен
+    let currentResults = await getNotionNotifications(process.env.NOTION_API_KEY, process.env.NOTION_DATABASE_ID);
+    // Соритруем по времени редактирования
+    currentResults.sort((a, b) => a.last_edited_time > b.last_edited_time ? 1 : -1).reverse();
+    setInterval(compareNotificationAndSendDifference, 5 * 60 * 1000);
+}
+
+async function compareNotificationAndSendDifference() {
     let newResults = await getNotionNotifications(process.env.NOTION_API_KEY, process.env.NOTION_DATABASE_ID);
     // Также сортируем его
     newResults.sort((a, b) => a.last_edited_time > b.last_edited_time ? 1 : -1).reverse();
 
     // Проверяем есть ли изменения относительно предыдущего массива страниц
-    let updates = change(currentResults, newResults);
+    let updates = compare(currentResults, newResults);
     console.log(updates)
     if (updates.length > 0) {
         console.log('===========UPDATES===========')
@@ -144,7 +147,7 @@ async function getNotionNotifications(apiKey, databaseId) {
 }
 
 // Функция сравнения двух массивов страниц базы данных ноушена
-function change(array, newArray) {
+function compare(array, newArray) {
     let counter = -1;
     let totalBreak = false;
     for (let i = 0; i < newArray.length; i++) {
